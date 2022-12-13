@@ -316,9 +316,14 @@ function login_security {
 	sed -i 's/USERGROUPS_ENAB.*/USERGROUPS_ENAB no/' "/etc/login.defs"
 	sed -i 's/^#.*SHA_CRYPT_MIN_ROUNDS .*/SHA_CRYPT_MIN_ROUNDS 10000/' "/etc/login.defs"
 	sed -i 's/^#.*SHA_CRYPT_MAX_ROUNDS .*/SHA_CRYPT_MAX_ROUNDS 65536/' "/etc/login.defs"
-	echo "done"
+	#PASSWROD HISTORY
+	sed -i '/the "Primary" block/apassword\trequired\t\t\tpam_pwhistory.so\tremember=5' "/etc/pam.d/common-password"
+	#password pol
+	cp pwquality.conf /etc/security/pwquality.conf
+	echo "done" 
 	sleep 2
 	clear
+	
 }
 function sysctl_hard {
 	 sysctl -w dev.tty.ldisc_autoload=0
@@ -389,7 +394,27 @@ function sysctl_hard {
 	 echo "sys stuff done"
 	 sleep 2
 }
-
+function sshd {
+	#make dir
+	#test in later phase
+	ssh 127.0.0.1
+	mkdir -p ~/ssh && chmod 700 ~/ssh
+	touch ~/.ssh/config
+	chmod 600 ~/.shh/config
+  	sed -i '/HostKey.*ssh_host_dsa_key.*/d' "~/.shh/config"
+	sed -i '/KeyRegenerationInterval.*/d' "~/.shh/config"
+	sed -i '/ServerKeyBits.*/d' "~/.shh/config"
+	sed -i '/UseLogin.*/d' "$SSHDFILE"
+	sed -i 's/.*X11Forwarding.*/X11Forwarding no/' "$SSHDFILE"
+	sed -i 's/.*LoginGraceTime.*/LoginGraceTime 20/' "$SSHDFILE"
+	sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' "$SSHDFILE"
+	sed -i 's/.*UsePrivilegeSeparation.*/UsePrivilegeSeparation sandbox/' "$SSHDFILE"
+	sed -i 's/.*LogLevel.*/LogLevel VERBOSE/' "$SSHDFILE"
+	sed -i 's/.*Banner.*/Banner \/etc\/issue.net/' "$SSHDFILE"
+	sed -i 's/.*Subsystem.*sftp.*/Subsystem sftp internal-sftp/' "$SSHDFILE"
+	sed -i 's/^#.*Compression.*/Compression no/' "$SSHDFILE"
+	sed -i "s/.*Port.*/Port $SSH_PORT/" "$SSHDFILE"
+}
 
 
 #update_remove_packets
@@ -401,10 +426,11 @@ function sysctl_hard {
 #Mail_time
 #fireball
 #bad_pro
-system
+#system
 #virus
 #login_security
 #sysctl_hard
+#sshd          #need help ssh
 
 
 
