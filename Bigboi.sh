@@ -264,10 +264,6 @@ function system {
 	sed -i 's/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=1024/' "/etc/systemd/system.conf"
 	sed -i 's/^#DefaultLimitNPROC=.*/DefaultLimitNPROC=1024/' "/etc/systemd/system.conf"
 	sleep 1
-	sed -i 's/^#DefaultLimitCORE=.*/DefaultLimitCORE=0/' "$USERCONF"
-	sed -i 's/^#DefaultLimitNOFILE=.*/DefaultLimitNOFILE=1024/' "$USERCONF"
-	sed -i 's/^#DefaultLimitNPROC=.*/DefaultLimitNPROC=1024/' "$USERCONF"
-	sleep 1
 	clear
 	echo "system hard"
 	clear
@@ -287,6 +283,62 @@ function system {
 	echo "Restrict SU"
 	sleep 2
 	echo "auth required pam_wheel.so" > /etc/pam.d/su
+	clear
+	echo "other lol"
+	usermod -a /sbin/nologin root
+	systemctl mask ctrl-alt-del.target
+	sed -i 's/^#CtrlAltBurstAction=.*/CtrlAltBurstAction=none/' "/etc/systemd/system.conf"
+	sleep 1
+	clear
+	#cCRON
+	echo "CRON CRON"
+	read -p "only root allowed ok? y/n " j
+	if [[ $j == y ]]
+	then
+		sleep 1
+		#remove bad
+		rm /etc/cron.deny 2> /dev/null
+		rm /etc/at.deny 2> /dev/null
+		#make good
+		echo 'root' > /etc/cron.allow
+		echo 'root' > /etc/at.allow
+		chown root:root /etc/cron.allow
+		chmod og-rwx /etc/cron.allow
+		chown root:root /etc/at.allow
+		chmod og-rwx /etc/at.allow
+		systemctl mask atd.service
+		systemctl stop atd.service
+		systemctl daemon-reload
+	else
+		echo "ok"
+	fi
+	clear 
+	echo "audit time!"
+	sleep 2
+	sed -i 's/^action_mail_acct =.*/action_mail_acct = root/' "/etc/audit/auditd.conf"
+	sed -i 's/^admin_space_left_action = .*/admin_space_left_action = halt/' "/etc/audit/auditd.conf"
+	sed -i 's/^max_log_file_action =.*/max_log_file_action = keep_logs/' "/etc/audit/auditd.conf"
+	sed -i 's/^space_left_action =.*/space_left_action = email/' "/etc/audit/auditd.conf"
+	echo "may be no audit IDK MAN check it your self"
+	sleep 4
+	echo " Rhosts file"
+	rm /etc/hosts.equiv
+	sleep 2
+	echo "postfix"
+	postconf -e disable_vrfy_command=yes
+	postconf -e smtpd_client_restrictions=permit_mynetworks,reject
+	postconf -e inet_interfaces=loopback-only
+	systemctl restart postfix.service
+	clear
+	sleep 2
+	read -p "USB guard stuff" h
+	apt-get install --no-install-recommends usbguard
+	usbguard generate-policy > /tmp/rules.conf
+	install -m 600 -o root -g root /tmp/rules.conf /etc/usbguard/rules.conf
+	systemctl enable usbguard.service
+	systemctl start usbguard.service
+	sleep 2
+	
 }
 function virus {
 	#Lynis
@@ -303,6 +355,12 @@ function virus {
 	#./lynis audit system
 	read -p "enter" X
 	clear
+	apt install rkhunter
+	#auto update
+	sed -i 's/^CRON_DAILY_RUN=.*/CRON_DAILY_RUN="yes"/' "/etc/rkhunter.conf"
+	sed -i 's/^APT_AUTOGEN=.*/APT_AUTOGEN="yes"/' "/etc/rkhunter.conf"
+	
+	sleep 2
 }
 function login_security {
 	echo "login stuff"
@@ -320,9 +378,21 @@ function login_security {
 	sed -i '/the "Primary" block/apassword\trequired\t\t\tpam_pwhistory.so\tremember=5' "/etc/pam.d/common-password"
 	#password pol
 	cp pwquality.conf /etc/security/pwquality.conf
+	chmod 0644 /etc/security/pwquality.conf
+	
 	echo "done" 
 	sleep 2
 	clear
+	echo "User fix things"
+	#get all users
+	#HELPPppppppppppppp
+	usrInfo=$( awk -F: '{ if ( $3 >= 1000 ) print $1 }' < /etc/passwd )
+	
+	for user in usrInfo
+	do
+	echo user
+	done
+	
 	
 }
 function sysctl_hard {
@@ -387,11 +457,10 @@ function sysctl_hard {
 	 sysctl -w net.filter.nf_conntrack_tcp_loose=0
 	 sysctl -w kernel.panic=10
 	 sysctl -w kernel.modules_disabled=1  
-	 #chmod 0600 "$SYSCTL"
 	 systemctl restart systemd-sysctl
 	 sleep 2
 	 clear
-	 echo "sys stuff done"
+	 echo "sys stuff done #chmod 0600 SYSCTL"
 	 sleep 2
 }
 function sshd {
@@ -416,6 +485,175 @@ function sshd {
 	sed -i "s/.*Port.*/Port $SSH_PORT/" "$SSHDFILE"
 }
 
+function sudo_pro {
+	echo "sudo saftey"
+	if ! grep -qER '^Defaults.*use_pty$' /etc/sudo.conf; then
+	  echo "Defaults use_pty" > /etc/sudoers.d/011_use_pty
+	fi
+	if ! grep -qER '^Defaults.*logfile' /etc/sudo.conf; then
+	  echo 'Defaults logfile="/var/log/sudo.log"' > /etc/sudoers.d/012_logfile
+	fi
+	
+	if ! grep -qER '^Defaults.*pwfeedback' /etc/sudo.conf; then
+	  echo 'Defaults !pwfeedback' > /etc/sudoers.d/013_pwfeedback
+	fi
+	
+	if ! grep -qER '^Defaults.*visiblepw' /etc/sudo.conf; then
+	  echo 'Defaults !visiblepw' > /etc/sudoers.d/014_visiblepw
+	fi
+	
+	if ! grep -qER '^Defaults.*passwd_timeout' /etc/sudo.conf; then
+	  echo 'Defaults passwd_timeout=1' > /etc/sudoers.d/015_passwdtimeout
+	fi	
+	
+	if ! grep -qER '^Defaults.*timestamp_timeout' /etc/sudo.conf; then
+	    echo 'Defaults timestamp_timeout=5' > /etc/sudoers.d/016_timestamptimeout
+	fi
+	find /etc/sudoers.d/ -type f -name '[0-9]*' -exec chmod 0440 {} \;
+	
+	if ! grep -qER '^auth required pam_wheel.so' /etc/pam.d/su; then
+	  echo "auth required pam_wheel.so use_uid group=sudo" >> /etc/pam.d/su
+	fi
+	sudo -ll > sudoll.log
+}
+function psat {
+	echo "psad stuff   pen detection =)"
+	apt install psad
+	read -p "enter "
+	sed -i "s/EMAIL_ADDRESSES             root@localhost;/EMAIL_ADDRESSES             wesleyhuhn@fisdk12.org;/" "/etc/psad/psad.conf"
+	sed -i "s/HOSTNAME                    _CHANGEME_;/HOSTNAME                    $(hostname --fqdn);/" "/etc/psad/psad.conf"
+	sed -i 's/ENABLE_AUTO_IDS             N;/ENABLE_AUTO_IDS               Y;/' "/etc/psad/psad.conf"
+	sed -i 's/DANGER_LEVEL2               15;/DANGER_LEVEL2               15;/' "/etc/psad/psad.conf"
+	sed -i 's/DANGER_LEVEL3               150;/DANGER_LEVEL3               150;/' "/etc/psad/psad.conf"
+	sed -i 's/DANGER_LEVEL4               1500;/DANGER_LEVEL4               1500;/' "/etc/psad/psad.conf"
+	sed -i 's/DANGER_LEVEL5               10000;/DANGER_LEVEL5               10000;/' "/etc/psad/psad.conf"
+	sed -i 's/EMAIL_ALERT_DANGER_LEVEL    1;/EMAIL_ALERT_DANGER_LEVEL    5;/' "/etc/psad/psad.conf"
+	sed -i 's/EMAIL_LIMIT                 0;/EMAIL_LIMIT                 5;/' "/etc/psad/psad.conf"
+	sed -i 's/EXPECT_TCP_OPTIONS             *;/EXPECT_TCP_OPTIONS             Y;/'  "/etc/psad/psad.conf"
+	sed -i 's/ENABLE_MAC_ADDR_REPORTING   N;/ENABLE_MAC_ADDR_REPORTING   Y;/' "/etc/psad/psad.conf"
+	sed -i 's/AUTO_IDS_DANGER_LEVEL       5;/AUTO_IDS_DANGER_LEVEL       1;/' "/etc/psad/psad.conf"
+	sed -i 's/ENABLE_AUTO_IDS_EMAILS      ;/ENABLE_AUTO_IDS_EMAILS      Y;/' "/etc/psad/psad.conf"
+	sed -i 's/IGNORE_PORTS             *;/IGNORE_PORTS             NONE;/' "/etc/psad/psad.conf"
+	sed -i 's/IPT_SYSLOG_FILE             \/var\/log\/messages;/IPT_SYSLOG_FILE             \/var\/log\/syslog;/' "/etc/psad/psad.conf"
+	sed -i 's/SIG_UPDATE_URL              http:\/\/www.cipherdyne.org\/psad\/signatures;/SIG_UPDATE_URL              https:\/\/www.cipherdyne.org\/psad\/signatures;/'  "/etc/psad/psad.conf"
+	
+	psad --sig-update
+	psad -H
+	psad --fw-analyze
+	
+}
+function start_path {
+	echo "2 minute pause between"
+	update_remove_packets
+	read -t 120 -p "wait for points for not " 
+	FTP
+	read -p "wait for points for not " -t 120
+	Samba
+	read -p "wait for points for not " -t 120
+	Tft
+	read -p "wait for points for not " -t 120
+	Vnc
+	read -p "wait for points for not " -t 120
+	remove_other
+	read -p "wait for points for not " -t 120
+	Mail_time
+	read -p "wait for points for not " -t 120
+	fireball
+	read -p "wait for points for not " -t 120
+	bad_pro
+	read -p "wait for points for not " -t 120
+	system
+	read -p "wait for points for not " -t 120
+	virus
+	read -p "wait for points for not " -t 120
+	login_security   # 17 not work passwd
+	read -p "wait for points for not " -t 120
+	sysctl_hard
+	read -p "wait for points for not " -t 120
+	sshd 
+	sudo_pro
+
+}
+function menu {
+	ans=""
+	while [[ ans != 99 ]]
+	do
+	echo """
+1. Update and remove packets
+2. FTP remove or upgrade
+3. Samba remove or upgrade
+4. VNC remove or upgrade
+5. Remove NetCat and other
+6. Check for mail, remove 
+7. Firewall, rules 
+8. Bad removeing DCCP SCTP RDS TIPC and system
+9. System harding
+10. virus detect and Rkhunter
+11. login security
+12. sysctl harding
+13. sshd
+14. sudo
+99.  QUIT
+"""
+	read -p "choice? " ans
+	echo $ans
+	if [[ $ans == 1 ]]; then
+		update_remove_packets
+	elif [[ $ans == 2 ]]; then
+		FTP
+	elif [[ $ans == 3 ]]; then
+		Samba
+	elif [[ $ans == 4 ]]; then
+		Vnc
+	elif [[ $ans == 5 ]]; then
+		remove_other
+	elif [[ $ans == 6 ]]; then
+		Mail_time
+	elif [[ $ans == 7 ]]; then
+		fireball
+	elif [[ $ans == 8 ]]; then
+		bad_pro
+	elif [[ $ans == 9 ]]; then
+		system
+	elif [[ $ans == 10 ]]; then
+		virus
+	elif [[ $ans == 11 ]]; then
+		login_security
+	elif [[ $ans == 12 ]]; then
+		sysctl_hard
+	elif [[ $ans == 13 ]]; then
+		sshd
+	elif [[ $ans == 14 ]]; then
+		sudo_pro
+	elif [[ $ans == 99 ]]; then
+		break
+	else
+		echo "try again"
+	fi
+	
+	done
+
+}
+
+#main
+function main {
+	echo """
+1. First
+2. Menu
+"""
+	read -p "choice" ch
+	if [[ $ch == 1 ]]
+	then
+		start_path
+	elif [[ $ch == 2 ]]
+	then
+		menu
+	else
+		echo "NO"
+	fi
+}	
+
+#main
 
 #update_remove_packets
 #FTP
@@ -428,13 +666,10 @@ function sshd {
 #bad_pro
 #system
 #virus
-#login_security
+#login_security   # 17 not work passwd
 #sysctl_hard
 #sshd          #need help ssh
-
-
-
-
-
+#sudo_pro
+psat
 
 
