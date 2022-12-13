@@ -278,7 +278,15 @@ function system {
 	echo "ALL: ALL" > /etc/hosts.deny
 	chmod 644 /etc/hosts.allow
 	chmod 644 /etc/hosts.deny
-	
+	clear
+	echo "Mask debug-shell"
+	sleep 2
+	systemctl mask debug-shell.service
+	systemctl stop debug-shell.service
+	clear
+	echo "Restrict SU"
+	sleep 2
+	echo "auth required pam_wheel.so" > /etc/pam.d/su
 }
 function virus {
 	#Lynis
@@ -384,7 +392,7 @@ function sysctl_hard {
 
 
 
-update_remove_packets
+#update_remove_packets
 #FTP
 #Samba
 #Tft
@@ -393,7 +401,7 @@ update_remove_packets
 #Mail_time
 #fireball
 #bad_pro
-#system
+system
 #virus
 #login_security
 #sysctl_hard
