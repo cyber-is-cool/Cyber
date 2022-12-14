@@ -9,32 +9,72 @@ function update_remove_packets {
 	apt remove snmp
 	apt remove xinetd
 	local PACKAGE_REMOVE
-	PACKAGE_REMOVE="apport* autofs avahi* beep git pastebinit popularity-contest rsh* rsync talk* telnet* tftp* whoopsie xinetd yp-tools ypbind"
+	PACKAGE_REMOVE= "apport autofs avahi beep git pastebinit popularity-contest rsh rsync talk telnet whoopsie xinetd yp-tools ypbind"
 	
 	for deb_remove in $PACKAGE_REMOVE; do
 		apt-get remove "$deb_remove" -y
 	done
+	
+	services="cups.service openvpn.service pure-ftpd.service rexec.service rsync.service rsyslog.service telnet.service vsftpd.service"
+	for service in $services; do
+		read -p "Would you like to disable $service? [y/n] >" yesNo
+	        if [[ yesNo == "y" ]]  
+	        then
+	            systemctl disable $service 2> /dev/null 1>&2
+	            echo "Script: [$SCRIPT_NUM] ::: Disabled $service"
+		fi
+	done
+	sudo apt-get remove --reinstall firefox -y
 }
 
-function FTP {  
+function FTP {
 	clear
 	read -p "Remove FTP? y\n " a
 	echo "$a"
-	if [[ $a == y ]]; then
+	if [[ $a == y ]]
+	then
 		echo "REMOVEING"
 		PRO = 'pgrep vsftpd'
-		sed -i 's/^/#/' /etc/vsftpd.conf
+		sed -i 's/^/#/' "/etc/vsftpd.conf"
 		kill $PRO
 		apt remove ftp
 		apt remove vsftpd
 		sleep 2
 	else
 		echo "securing"
-		sed -i 's/anonymous_enable=.*/anonymous_enable=NO/' /etc/vsftpd.conf
-		sed -i 's/local_enable=.*/local_enable=YES/' /etc/vsftpd.conf
-		sed -i 's/#write_enable=.*/write_enable=YES/' /etc/vsftpd.conf
-		sed -i 's/#chroot_local_user=.*/chroot_local_user=YES/' /etc/vsftpd.conf
-		sleep 2		
+		sed -i 's/anonymous_enable=.*/anonymous_enable=NO/' "/etc/vsftpd.conf"
+		sed -i 's/local_enable=.*/local_enable=YES/' "/etc/vsftpd.conf"
+		sed -i 's/#write_enable=.*/write_enable=YES/' "/etc/vsftpd.conf"
+		sed -i 's/#chroot_local_user=.*/chroot_local_user=YES/' "/etc/vsftpd.conf"
+		sleep 2	
+		clear
+		echo "vsftp to be as secure as possible"
+		sed -i 's/anonymous_enable=.*/anonymous_enable=NO/' "/etc/vsftpd.conf"
+	
+	 	read -p "Would you like to have local users access the server? [y/n] >" l
+	    	if [[ $l == y ]] 
+	    	then
+	        	sed -i 's/local_enable=.*/local_enable=YES/' "/etc/vsftpd.conf"
+	    	fi
+	
+	    	read -p "Would you like to have uploads enabled? [y/n] >" up
+	    	if [[ $up == y ]] 
+	    	then
+	        	sed -i 's/#write_enable=.*/write_enable=YES/' "/etc/vsftpd.conf"
+	    	fi
+			sed -i 's/#chroot_local_user=.*/chroot_local_user=YES/' "/etc/vsftpd.conf" 
+	   	read -p "Would you like to have VSFTPD listen on IPV6 instead of IPV4? [y/n] >" ip
+	    	if [[ $ip == y ]]
+	    	then
+	        	sed -i 's/#listen=*/listen=NO/' "/etc/vsftpd.conf"
+	        	sed -i    's/listen_ipv6=*/listen_ipv6=YES/' "/etc/vsftpd.conf"
+	    	else    
+	        	sed -i 's/#listen=*/listen=YES' "/etc/vsftpd.conf"
+	        	sed -i 's/listen_ipv6=*/listen_ipv6=NO/' "/etc/vsftpd.conf"
+	    	fi
+	    	sed -i 's/ssl_enable=*/ssl_enable=YES/' "/etc/vsftpd.conf"
+	    	sed -i 's/xferlog_enable=*/xferlog_enable=YES/' "/etc/vsftpd.conf"
+	    	sed -i 's/xferlog_std_format=*/xferlog_std_format=YES/' "/etc/vsftpd.conf"
 	fi
 }
 function Samba {
@@ -331,13 +371,17 @@ function system {
 	systemctl restart postfix.service
 	clear
 	sleep 2
-	read -p "USB guard stuff" h
+	read -p "USB guard stuff... enter " h
 	apt-get install --no-install-recommends usbguard
 	usbguard generate-policy > /tmp/rules.conf
 	install -m 600 -o root -g root /tmp/rules.conf /etc/usbguard/rules.conf
 	systemctl enable usbguard.service
 	systemctl start usbguard.service
 	sleep 2
+	echo "allow-guest=false" >> /etc/lightdm/lightdm.conf
+	#daily updates
+	sed -i -e 's/APT::Periodic::Update-Package-Lists.*\+/APT::Periodic::Update-Package-Lists "1";/' /etc/apt/apt.conf.d/10periodic
+	sed -i -e 's/APT::Periodic::Download-Upgradeable-Packages.*\+/APT::Periodic::Download-Upgradeable-Packages "0";/' /etc/apt/apt.conf.d/10periodic
 	
 }
 function virus {
@@ -361,6 +405,14 @@ function virus {
 	sed -i 's/^APT_AUTOGEN=.*/APT_AUTOGEN="yes"/' "/etc/rkhunter.conf"
 	
 	sleep 2
+	apt install clamav
+	apt-get install chkrootkit
+	clamav
+	freshclam
+	clamscan -r --bell -i /home/
+	chkrootkit
+	apt-get install clamtk -y
+	read -p "readout up the neter"
 }
 function login_security {
 	echo "login stuff"
@@ -540,7 +592,16 @@ function psat {
 	psad --sig-update
 	psad -H
 	psad --fw-analyze
-	
+	sleep 3
+	clear
+}
+function users {
+	#weird users
+	echo "weird user"
+	mawk -F: '$3 > 999 && $3 < 65534 {print $1}' /etc/passwd
+	echo "none"
+	sleep 2
+	mawk -F: '$1 == "sudo"' /etc/group
 }
 function start_path {
 	echo "2 minute pause between"
@@ -572,6 +633,7 @@ function start_path {
 	read -p "wait for points for not " -t 120
 	sshd 
 	sudo_pro
+	psat
 
 }
 function menu {
@@ -588,12 +650,13 @@ function menu {
 7. Firewall, rules 
 8. Bad removeing DCCP SCTP RDS TIPC and system
 9. System harding
-10. virus detect and Rkhunter
-11. login security
-12. sysctl harding
-13. sshd
-14. sudo
-99.  QUIT
+10. Virus detect and Rkhunter
+11. Login security
+12. Sysctl harding
+13. Sshd
+14. Sudo
+15. Psat
+99. QUIT
 """
 	read -p "choice? " ans
 	echo $ans
@@ -625,6 +688,8 @@ function menu {
 		sshd
 	elif [[ $ans == 14 ]]; then
 		sudo_pro
+	elif [[ $ans == 15 ]]; then
+		psat
 	elif [[ $ans == 99 ]]; then
 		break
 	else
@@ -670,6 +735,6 @@ function main {
 #sysctl_hard
 #sshd          #need help ssh
 #sudo_pro
-psat
-
+#psat
+users
 
