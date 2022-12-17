@@ -298,6 +298,7 @@ function bad_pro {
 	sleep 2
 }
 function system {
+	echo 'exit 0' > /etc/rc.local
 	sed -i 's/^#DumpCore=.*/DumpCore=no/' "/etc/systemd/system.conf"
 	sed -i 's/^#CrashShell=.*/CrashShell=no/' "/etc/systemd/system.conf"
 	sed -i 's/^#DefaultLimitCORE=.*/DefaultLimitCORE=0/' "/etc/systemd/system.conf"
@@ -310,6 +311,7 @@ function system {
 	echo "hosts things"
 	sleep 2	
 	echo "sshd : ALL : ALLOW" >> /etc/hosts.allow
+	
 	echo "ALL: LOCAL, 127.0.0.1" >> /etc/hosts.allow
 	echo "ALL: ALL" > /etc/hosts.deny
 	chmod 644 /etc/hosts.allow
@@ -391,7 +393,6 @@ function virus {
 	echo "Lynis"
 	sleep 1
 	clear
-	
 	git clone https://github.com/CISOfy/lynis
 	cd lynis || return
 	sleep 2
@@ -409,14 +410,14 @@ function virus {
 	apt-get install chkrootkit
 	clamav
 	freshclam
-	clamscan -r --bell -i /home/
+	clamscan -r --log=/var/log/xyzlog.log
 	chkrootkit
 	apt-get install clamtk -y
-	read -p "readout up the neter"
+	read -p " enter"
 }
 function login_security {
 	echo "login stuff"
-
+	passwd -l root
 	sed -i 's/^.*LOG_OK_LOGINS.*/LOG_OK_LOGINS yes/' "/etc/login.defs"
 	sed -i 's/^UMASK.*/UMASK 077/' "/etc/login.defs"
 	sed -i 's/^PASS_MIN_DAYS.*/PASS_MIN_DAYS 7/' "/etc/login.defs"
@@ -438,16 +439,16 @@ function login_security {
 	echo "User fix things"
 	#get all users
 	#HELPPppppppppppppp
-	usrInfo=$( awk -F: '{ if ( $3 >= 1000 ) print $1 }' < /etc/passwd )
-	
-	for user in usrInfo
-	do
-	echo user
+	for i in $(mawk -F: '$3 > 999 && $3 < 65534 {print $1}' /etc/passwd); 
+	do  
+		hmod -R 750 /home/${i} 
 	done
 	
 	
 }
 function sysctl_hard {
+	systemctl disable avahi-deamon
+
 	 sysctl -w dev.tty.ldisc_autoload=0
 	 sysctl -w fs.protected_fifos=2
 	 sysctl -w fs.protected_hardlinks=1
@@ -595,45 +596,165 @@ function psat {
 	sleep 3
 	clear
 }
-function users {
+function users_file {
 	#weird users
 	echo "weird user"
 	mawk -F: '$3 > 999 && $3 < 65534 {print $1}' /etc/passwd
-	echo "none"
+	echo "done"
 	sleep 2
+	echo "weird admin"
 	mawk -F: '$1 == "sudo"' /etc/group
+	sleep 2
+	echo "empty passwords"
+	mawk -F: '$2 == ""' /etc/passwd
+	sleep 2
+	echo "0 UID users"
+	mawk -F: '$3 == 0 && $1 == "root"' /etc/passwd
+	#fiels
+	read -p "enter to cont. "
+	find /dir -xdev \( -nouser -o -nogroup\) -print
+	mp3=locate "*.mp3*"
+	mp4=locate "*.mp3*"
+	echo "$mp3"
+	echo "$mp4"
+}
+function ip_table {
+		apt-get install -y iptables
+		apt-get install -y iptables-persistent
+		#Backup
+		mkdir /iptables/
+		touch /iptables/rules.v4.bak
+		touch /iptables/rules.v6.bak
+		iptables-save > /iptables/rules.v4.bak
+		ip6tables-save > /iptables/rules.v6.bak
+		#Clear out and default iptables
+		iptables -t nat -F
+		iptables -t mangle -F
+		iptables -t nat -X
+		iptables -t mangle -X
+		iptables -F
+		iptables -X
+		iptables -P INPUT DROP
+		iptables -P FORWARD DROP
+		iptables -P OUTPUT ACCEPT
+		ip6tables -t nat -F
+		ip6tables -t mangle -F
+		ip6tables -t nat -X
+		ip6tables -t mangle -X
+		ip6tables -F
+		ip6tables -X
+		ip6tables -P INPUT DROP
+		ip6tables -P FORWARD DROP
+		ip6tables -P OUTPUT DROP
+		#Block Bad
+		printf "Enter primary internet interface: eth0 lo ? "
+		read interface
+		#Blocks bogons going into the computer
+		iptables -A INPUT -s 127.0.0.0/8 -i $interface -j DROP
+		iptables -A INPUT -s 0.0.0.0/8 -j DROP
+		iptables -A INPUT -s 100.64.0.0/10 -j DROP
+		iptables -A INPUT -s 169.254.0.0/16 -j DROP
+		iptables -A INPUT -s 192.0.0.0/24 -j DROP
+		iptables -A INPUT -s 192.0.2.0/24 -j DROP
+		iptables -A INPUT -s 198.18.0.0/15 -j DROP
+		iptables -A INPUT -s 198.51.100.0/24 -j DROP
+		iptables -A INPUT -s 203.0.113.0/24 -j DROP
+		iptables -A INPUT -s 224.0.0.0/3 -j DROP
+		#Blocks bogons from leaving the computer
+		iptables -A OUTPUT -d 127.0.0.0/8 -o $interface -j DROP
+		iptables -A OUTPUT -d 0.0.0.0/8 -j DROP
+		iptables -A OUTPUT -d 100.64.0.0/10 -j DROP
+		iptables -A OUTPUT -d 169.254.0.0/16 -j DROP
+		iptables -A OUTPUT -d 192.0.0.0/24 -j DROP
+		iptables -A OUTPUT -d 192.0.2.0/24 -j DROP
+		iptables -A OUTPUT -d 198.18.0.0/15 -j DROP
+		iptables -A OUTPUT -d 198.51.100.0/24 -j DROP
+		iptables -A OUTPUT -d 203.0.113.0/24 -j DROP
+		iptables -A OUTPUT -d 224.0.0.0/3 -j DROP
+		#Blocks outbound from source bogons - A bit overkill
+		iptables -A OUTPUT -s 127.0.0.0/8 -o $interface -j DROP
+		iptables -A OUTPUT -s 0.0.0.0/8 -j DROP
+		iptables -A OUTPUT -s 100.64.0.0/10 -j DROP
+		iptables -A OUTPUT -s 169.254.0.0/16 -j DROP
+		iptables -A OUTPUT -s 192.0.0.0/24 -j DROP
+		iptables -A OUTPUT -s 192.0.2.0/24 -j DROP
+		iptables -A OUTPUT -s 198.18.0.0/15 -j DROP
+		iptables -A OUTPUT -s 198.51.100.0/24 -j DROP
+		iptables -A OUTPUT -s 203.0.113.0/24 -j DROP
+		iptables -A OUTPUT -s 224.0.0.0/3 -j DROP
+		#Block receiving bogons intended for bogons - Super overkill
+		iptables -A INPUT -d 127.0.0.0/8 -i $interface -j DROP
+		iptables -A INPUT -d 0.0.0.0/8 -j DROP
+		iptables -A INPUT -d 100.64.0.0/10 -j DROP
+		iptables -A INPUT -d 169.254.0.0/16 -j DROP
+		iptables -A INPUT -d 192.0.0.0/24 -j DROP
+		iptables -A INPUT -d 192.0.2.0/24 -j DROP
+		iptables -A INPUT -d 198.18.0.0/15 -j DROP
+		iptables -A INPUT -d 198.51.100.0/24 -j DROP
+		iptables -A INPUT -d 203.0.113.0/24 -j DROP
+		iptables -A INPUT -d 224.0.0.0/3 -j DROP
+		iptables -A INPUT -i lo -j ACCEPT
+		#Least Strict Rules
+		#iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+		#Strict Rules -- Only allow well known ports (1-1022)
+		#iptables -A INPUT -p tcp --match multiport --sports 1:1022 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A INPUT -p udp --match multiport --sports 1:1022 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p tcp --match multiport --dports 1:1022 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p udp --match multiport --dports 1:1022 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -o lo -j ACCEPT
+		#iptables -P OUTPUT DROP
+		#Very Strict Rules - Only allow HTTP/HTTPS, NTP and DNS
+		iptables -A INPUT -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		iptables -A INPUT -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		iptables -A INPUT -p tcp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		iptables -A INPUT -p udp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -p tcp --dport 80 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -p tcp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -p udp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		iptables -A OUTPUT -o lo -j ACCEPT
+		iptables -P OUTPUT DROP
+		mkdir /etc/iptables/
+		touch /etc/iptables/rules.v4
+		touch /etc/iptables/rules.v6
+		iptables-save > /etc/iptables/rules.v4
+		ip6tables-save > /etc/iptables/rules.v6
 }
 function start_path {
 	echo "2 minute pause between"
 	update_remove_packets
 	read -t 120 -p "wait for points for not " 
 	FTP
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	Samba
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	Tft
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	Vnc
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	remove_other
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	Mail_time
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	fireball
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	bad_pro
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	system
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	virus
-	read -p "wait for points for not " -t 120
-	login_security   # 17 not work passwd
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
+	login_security 
+	read -t 120 -p "wait for points for not " 
 	sysctl_hard
-	read -p "wait for points for not " -t 120
+	read -t 120 -p "wait for points for not " 
 	sshd 
+	read -t 120 -p "wait for points for not " 
 	sudo_pro
+	read -t 120 -p "wait for points for not " 
 	psat
+	read -t 120 -p "wait for points for not " 
+	ip_table
 
 }
 function menu {
@@ -656,6 +777,8 @@ function menu {
 13. Sshd
 14. Sudo
 15. Psat
+16. Users_file
+17. IP_table
 99. QUIT
 """
 	read -p "choice? " ans
@@ -690,6 +813,10 @@ function menu {
 		sudo_pro
 	elif [[ $ans == 15 ]]; then
 		psat
+	elif [[ $ans == 16 ]]; then
+		Users_file
+	elif [[ $ans == 17 ]]; then
+		ip_table
 	elif [[ $ans == 99 ]]; then
 		break
 	else
@@ -718,7 +845,7 @@ function main {
 	fi
 }	
 
-#main
+main
 
 #update_remove_packets
 #FTP
@@ -731,10 +858,10 @@ function main {
 #bad_pro
 #system
 #virus
-#login_security   # 17 not work passwd
+#login_security
 #sysctl_hard
 #sshd          #need help ssh
 #sudo_pro
 #psat
-users
-
+#users_file
+#ip_table
