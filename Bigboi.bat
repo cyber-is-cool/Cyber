@@ -15,10 +15,6 @@ echo 3. Disable RDP and on UAC
 echo 4. ALL THE REG
 echo 5. auto update
 CHOICE /C 123456789 /M "Enter your choice:"
-if ERRORLEVEL 9 goto Nine
-if ERRORLEVEL 8 goto Eight
-if ERRORLEVEL 7 goto Seven
-if ERRORLEVEL 6 goto Six
 if ERRORLEVEL 5 goto Five
 if ERRORLEVEL 4 goto Four
 if ERRORLEVEL 3 goto Three
@@ -77,6 +73,7 @@ dism /online /disable-feature /featurename:IIS-FTPExtensibility
 dism /online /disable-feature /featurename:TFTP
 dism /online /disable-feature /featurename:TelnetClient
 dism /online /disable-feature /featurename:TelnetServer
+goto MENU
 :Two
 netsh advfirewall firewall set rule name="Remote Assistance (DCOM-In)" new enable=no >NUL
 netsh advfirewall firewall set rule name="Remote Assistance (PNRP-In)" new enable=no >NUL
