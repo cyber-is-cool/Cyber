@@ -590,9 +590,9 @@ function psat {
 	sed -i 's/IPT_SYSLOG_FILE             \/var\/log\/messages;/IPT_SYSLOG_FILE             \/var\/log\/syslog;/' "/etc/psad/psad.conf"
 	sed -i 's/SIG_UPDATE_URL              http:\/\/www.cipherdyne.org\/psad\/signatures;/SIG_UPDATE_URL              https:\/\/www.cipherdyne.org\/psad\/signatures;/'  "/etc/psad/psad.conf"
 	
-	psad --sig-update
+	psad --sig-update >> psad.lodf
 	psad -H
-	psad --fw-analyze
+	psad --fw-analyze >> psad.logd
 	sleep 3
 	clear
 }
@@ -611,12 +611,16 @@ function users_file {
 	echo "0 UID users"
 	mawk -F: '$3 == 0 && $1 == "root"' /etc/passwd
 	#fiels
+	find /dir -xdev \( -nouser -o -nogroup \) -print
 	read -p "enter to cont. "
-	find /dir -xdev \( -nouser -o -nogroup\) -print
-	mp3=locate "*.mp3*"
-	mp4=locate "*.mp3*"
-	echo "$mp3"
-	echo "$mp4"
+	sleep 4
+	clear
+	typeArray=("*.sh" "*.shosts" "*shosts.equiv*" "*backdoor*.*" "bindshell.perl" "*.perl" "*.docx" "*.log" "*.rtf" "*.txt" "*.csv" "*.dat" "*.pptx" "*.xml" "*.m4a" "*.mp3" "*.mp4" "*.wav" "*.avi" "*.m4v" "*.mov" "*.svg" "*.jpg" "*.jpeg" "*.png" "*.xlsx" "*.db" "*.sql" "*.apk" "*.bat" "*.com" "*.exe" "*.wsf" "*.ps1" "*.zip" "*.rar" "*.torrent")
+	for type in typeArray
+	do
+		find /home -type f -name "$type" -print >> badFiles
+	done
+	
 }
 function ip_table {
 		apt-get install -y iptables
@@ -649,7 +653,7 @@ function ip_table {
 		#Block Bad
 		printf "Enter primary internet interface: eth0 lo ? "
 		read interface
-		#Blocks bogons going into the computer
+		#Blocks  going into the computer
 		iptables -A INPUT -s 127.0.0.0/8 -i $interface -j DROP
 		iptables -A INPUT -s 0.0.0.0/8 -j DROP
 		iptables -A INPUT -s 100.64.0.0/10 -j DROP
@@ -660,7 +664,7 @@ function ip_table {
 		iptables -A INPUT -s 198.51.100.0/24 -j DROP
 		iptables -A INPUT -s 203.0.113.0/24 -j DROP
 		iptables -A INPUT -s 224.0.0.0/3 -j DROP
-		#Blocks bogons from leaving the computer
+		#Blocks  from leaving the computer
 		iptables -A OUTPUT -d 127.0.0.0/8 -o $interface -j DROP
 		iptables -A OUTPUT -d 0.0.0.0/8 -j DROP
 		iptables -A OUTPUT -d 100.64.0.0/10 -j DROP
@@ -671,7 +675,7 @@ function ip_table {
 		iptables -A OUTPUT -d 198.51.100.0/24 -j DROP
 		iptables -A OUTPUT -d 203.0.113.0/24 -j DROP
 		iptables -A OUTPUT -d 224.0.0.0/3 -j DROP
-		#Blocks outbound from source bogons - A bit overkill
+		#Blocks outbound from source  - A bit overkill
 		iptables -A OUTPUT -s 127.0.0.0/8 -o $interface -j DROP
 		iptables -A OUTPUT -s 0.0.0.0/8 -j DROP
 		iptables -A OUTPUT -s 100.64.0.0/10 -j DROP
@@ -682,7 +686,7 @@ function ip_table {
 		iptables -A OUTPUT -s 198.51.100.0/24 -j DROP
 		iptables -A OUTPUT -s 203.0.113.0/24 -j DROP
 		iptables -A OUTPUT -s 224.0.0.0/3 -j DROP
-		#Block receiving bogons intended for bogons - Super overkill
+		#Block receiving bogons intended for  - Super overkill
 		iptables -A INPUT -d 127.0.0.0/8 -i $interface -j DROP
 		iptables -A INPUT -d 0.0.0.0/8 -j DROP
 		iptables -A INPUT -d 100.64.0.0/10 -j DROP
@@ -769,12 +773,12 @@ function menu {
 5. Remove NetCat and other
 6. Check for mail, remove 
 7. Firewall, rules 
-8. Bad removeing DCCP SCTP RDS TIPC and system
+8. Bad removeing DCCP SCTP RDS TIPC and system #
 9. System harding
 10. Virus detect and Rkhunter
 11. Login security
 12. Sysctl harding
-13. Sshd
+13. Sshd #
 14. Sudo
 15. Psat
 16. Users_file
@@ -798,7 +802,8 @@ function menu {
 	elif [[ $ans == 7 ]]; then
 		fireball
 	elif [[ $ans == 8 ]]; then
-		bad_pro
+		clear
+		echo "SORRY NO WORK 420"
 	elif [[ $ans == 9 ]]; then
 		system
 	elif [[ $ans == 10 ]]; then
@@ -808,23 +813,39 @@ function menu {
 	elif [[ $ans == 12 ]]; then
 		sysctl_hard
 	elif [[ $ans == 13 ]]; then
-		sshd
+		clear
+		echo "SORRY NO WORK 420"
 	elif [[ $ans == 14 ]]; then
 		sudo_pro
 	elif [[ $ans == 15 ]]; then
 		psat
 	elif [[ $ans == 16 ]]; then
-		Users_file
+		users_file
 	elif [[ $ans == 17 ]]; then
 		ip_table
 	elif [[ $ans == 99 ]]; then
 		break
-	else
-		echo "try again"
+	elif [[ $ans == 420 ]]; then
+		echo "
+		8. system but weird
+		13. ssh but its a pain"
+		read -p "choice??? " sc
+		
+		if [[ $sc == 8 ]]; then
+			bad_pro
+		elif [[ $sc == 13 ]]; then
+			sshd
+		else
+			echo "NO BY"
+			sleep 2
+			clear
+		fi
+	elif [[ $ans == 1237 ]]; then
+		echo "HI"
 	fi
 	
 	done
-
+	
 }
 
 #main
@@ -834,8 +855,9 @@ function main {
 2. Menu
 """
 	read -p "choice" ch
-	if [[ $ch == 1 ]]
-	then
+	if [[ $ch == 1 ]]; then
+		read -p "dont" gggg
+		read -p "dont" gggg
 		start_path
 	elif [[ $ch == 2 ]]
 	then
@@ -855,7 +877,7 @@ main
 #remove_other
 #Mail_time
 #fireball
-#bad_pro
+#bad_pro #
 #system
 #virus
 #login_security
@@ -865,3 +887,19 @@ main
 #psat
 #users_file
 #ip_table
+
+#thsiu o os a vuudh fgowik n tehwdiow njd wD;WJKdwDWD wjkd W FWFELW;FKJLKJEFLK;WflkjwfjlkWFL;KJWFlkjWFLKJWflkjWL;KWflkjwFLKJWFwFLKWJfL;KWFJWL;KfjwFKL;JL;KECVJIOVJQLK;MCF;LJMFCKLWEJFCLJ
+#QEGUHIOUHIUBHRIJKNGJNEWGKJNEWPOIGJEIOPG JNPIOEJOIPVJOQPDOPKOJK34IU89-7891435-9348UNV5JLJM3,4;DIU1345U9083U1953NDU1DM343490134J905V[34134V459VEQGEQ
+#QGQFQFNP8WEF	UOIPFWE	WEF	WEF		WEFW	FNOWEFW	EX	RKODJL;DE	WL;CKC	IODCPODDOCJKcOPIDC[	EDCP'	CD;'C		CDLC	D	DCC	E;PCDE	KD	CEP'	DE	DCEK	ECD'P	CEDL	O	CEDMCDE	DEC'	CPOC		CDEP'	DD	ECCDE3KPMO
+#thsiu o os a vuudh fgowik n tehwdiow njd wD;WJKdwDWD wjkd W FWFELW;FKJLKJEFLK;WflkjwfjlkWFL;KJWFlkjWFLKJWflkjWL;KWflkjwFLKJWFwFLKWJfL;KWFJWL;KfjwFKL;JL;KECVJIOVJQLK;MCF;LJMFCKLWEJFCLJ
+#QEGUHIOUHIUBHRIJKNGJNEWGKJNEWPOIGJEIOPG JNPIOEJOIPVJOQPDOPKOJK34IU89-7891435-9348UNV5JLJM3,4;DIU1345U9083U1953NDU1DM343490134J905V[34134V459VEQGEQ
+#QGQFQFNP8WEF	UOIPFWE	WEF	WEF		WEFW	FNOWEFW	EX	RKODJL;DE	WL;CKC	IODCPODDOCJKcOPIDC[	EDCP'	CD;'C		CDLC	D	DCC	E;PCDE	KD	CEP'	DE	DCEK	ECD'P	CEDL	O	CEDMCDE	DEC'	CPOC		CDEP'	DD	ECCDE3KPMO
+#thsiu o os a vuudh fgowik n tehwdiow njd wD;WJKdwDWD wjkd W FWFELW;FKJLKJEFLK;WflkjwfjlkWFL;KJWFlkjWFLKJWflkjWL;KWflkjwFLKJWFwFLKWJfL;KWFJWL;KfjwFKL;JL;KECVJIOVJQLK;MCF;LJMFCKLWEJFCLJ
+#QEGUHIOUHIUBHRIJKNGJNEWGKJNEWPOIGJEIOPG JNPIOEJOIPVJOQPDOPKOJK34IU89-7891435-9348UNV5JLJM3,4;DIU1345U9083U1953NDU1DM343490134J905V[34134V459VEQGEQ
+#QGQFQFNP8WEF	UOIPFWE	WEF	WEF		WEFW	FNOWEFW	EX	RKODJL;DE	WL;CKC	IODCPODDOCJKcOPIDC[	EDCP'	CD;'C		CDLC	D	DCC	E;PCDE	KD	CEP'	DE	DCEK	ECD'P	CEDL	O	CEDMCDE	DEC'	CPOC		CDEP'	DD	ECCDE3KPMO
+#thsiu o os a vuudh fgowik n tehwdiow njd wD;WJKdwDWD wjkd W FWFELW;FKJLKJEFLK;WflkjwfjlkWFL;KJWFlkjWFLKJWflkjWL;KWflkjwFLKJWFwFLKWJfL;KWFJWL;KfjwFKL;JL;KECVJIOVJQLK;MCF;LJMFCKLWEJFCLJ
+#QEGUHIOUHIUBHRIJKNGJNEWGKJNEWPOIGJEIOPG JNPIOEJOIPVJOQPDOPKOJK34IU89-7891435-9348UNV5JLJM3,4;DIU1345U9083U1953NDU1DM343490134J905V[34134V459VEQGEQ
+#QGQFQFNP8WEF	UOIPFWE	WEF	WEF		WEFW	FNOWEFW	EX	RKODJL;DE	WL;CKC	IODCPODDOCJKcOPIDC[	EDCP'	CD;'C		CDLC	D	DCC	E;PCDE	KD	CEP'	DE	DCEK	ECD'P	CEDL	O	CEDMCDE	DEC'	CPOC		CDEP'	DD	ECCDE3KPMO
+#thsiu o os a vuudh fgowik n tehwdiow njd wD;WJKdwDWD wjkd W FWFELW;FKJLKJEFLK;WflkjwfjlkWFL;KJWFlkjWFLKJWflkjWL;KWflkjwFLKJWFwFLKWJfL;KWFJWL;KfjwFKL;JL;KECVJIOVJQLK;MCF;LJMFCKLWEJFCLJ
+#QEGUHIOUHIUBHRIJKNGJNEWGKJNEWPOIGJEIOPG JNPIOEJOIPVJOQPDOPKOJK34IU89-7891435-9348UNV5JLJM3,4;DIU1345U9083U1953NDU1DM343490134J905V[34134V459VEQGEQ
+#QGQFQFNP8WEF	UOIPFWE	WEF	WEF		WEFW	FNOWEFW	EX	RKODJL;DE	WL;CKC	IODCPODDOCJKcOPIDC[	EDCP'	CD;'C		CDLC	D	DCC	E;PCDE	KD	CEP'	DE	DCEK	ECD'P	CEDL	O	CEDMCDE	DEC'	CPOC		CDEP'	DD	ECCDE3KPMO
