@@ -93,21 +93,7 @@ function Samba {
 	fi
 	
 }
-function Tft {
-	clear
-	read -p "Remove TFTPD? y\n " c
-	echo "$c"
-	if [[ $c == y ]]
-	then
-		echo "REMOVEING"
-		apt remove TFTPD
-		sleep 3
-	else
-		echo "ok"
-		sleep 2
-	fi
 
-}
 function Vnc {
 	clear
 	read -p "Remove VNC? y\n " d
@@ -124,9 +110,18 @@ function Vnc {
 		echo "ok"
 		sleep 2
 	fi
-
-}
-function NFT {
+	clear
+	read -p "Remove TFTPD? y\n " c
+	echo "$c"
+	if [[ $c == y ]]
+	then
+		echo "REMOVEING"
+		apt remove TFTPD
+		sleep 3
+	else
+		echo "ok"
+		sleep 2
+	fi
 	clear
 	read -p "Remove NFS? y\n " e
 	echo "$e"
@@ -441,7 +436,7 @@ function login_security {
 	#HELPPppppppppppppp
 	for i in $(mawk -F: '$3 > 999 && $3 < 65534 {print $1}' /etc/passwd); 
 	do  
-		hmod -R 750 /home/${i} 
+		chmod -R 750 /home/${i} 
 	done
 	
 	
@@ -489,27 +484,27 @@ function sysctl_hard {
 	 sysctl -w net.ipv4.tcp_syn_retries=5
 	 sysctl -w net.ipv4.tcp_synack_retries=2
 	 sysctl -w net.ipv4.tcp_syncookies=1
-	 sysctl -w net.ipv6.conf.all.accept_ra=0
-	 sysctl -w net.ipv6.conf.all.accept_redirects=0
-	 sysctl -w net.ipv6.conf.all.accept_source_route=0
-	 sysctl -w net.ipv6.conf.all.forwarding=0
-	 sysctl -w net.ipv6.conf.all.use_tempaddr=2
-	 sysctl -w net.ipv6.conf.default.accept_ra=0
-	 sysctl -w net.ipv6.conf.default.accept_ra_defrtr=0
-	 sysctl -w net.ipv6.conf.default.accept_ra_pinfo=0
-	 sysctl -w net.ipv6.conf.default.accept_ra_rtr_pref=0
-	 sysctl -w net.ipv6.conf.default.accept_redirects=0
-	 sysctl -w net.ipv6.conf.default.accept_source_route=0
-	 sysctl -w net.ipv6.conf.default.autoconf=0
-	 sysctl -w net.ipv6.conf.default.dad_transmits=0
-	 sysctl -w net.ipv6.conf.default.max_addresses=1
-	 sysctl -w net.ipv6.conf.default.router_solicitations=0
-	 sysctl -w net.ipv6.conf.default.use_tempaddr=2
-	 sysctl -w net.ipv6.conf.eth0.accept_ra_rtr_pref=0
-	 sysctl -w net.filter.nf_conntrack_max=2000000
-	 sysctl -w net.filter.nf_conntrack_tcp_loose=0
-	 sysctl -w kernel.panic=10
-	 sysctl -w kernel.modules_disabled=1  
+	 #sysctl -w net.ipv6.conf.all.accept_ra=0
+	 #sysctl -w net.ipv6.conf.all.accept_redirects=0
+	 #sysctl -w net.ipv6.conf.all.accept_source_route=0
+	 #sysctl -w net.ipv6.conf.all.forwarding=0
+	 #sysctl -w net.ipv6.conf.all.use_tempaddr=2
+	 #sysctl -w net.ipv6.conf.default.accept_ra=0
+	 #sysctl -w net.ipv6.conf.default.accept_ra_defrtr=0
+	 #sysctl -w net.ipv6.conf.default.accept_ra_pinfo=0
+	 #sysctl -w net.ipv6.conf.default.accept_ra_rtr_pref=0
+	 #sysctl -w net.ipv6.conf.default.accept_redirects=0
+	 #sysctl -w net.ipv6.conf.default.accept_source_route=0
+	 #sysctl -w net.ipv6.conf.default.autoconf=0
+	 #sysctl -w net.ipv6.conf.default.dad_transmits=0
+	 #sysctl -w net.ipv6.conf.default.max_addresses=1
+	 #sysctl -w net.ipv6.conf.default.router_solicitations=0
+	 #sysctl -w net.ipv6.conf.default.use_tempaddr=2
+	 #sysctl -w net.ipv6.conf.eth0.accept_ra_rtr_pref=0
+	 #sysctl -w net.filter.nf_conntrack_max=2000000
+	 #sysctl -w net.filter.nf_conntrack_tcp_loose=0
+	 #sysctl -w kernel.panic=10
+	 #sysctl -w kernel.modules_disabled=1  
 	 systemctl restart systemd-sysctl
 	 sleep 2
 	 clear
@@ -590,9 +585,9 @@ function psat {
 	sed -i 's/IPT_SYSLOG_FILE             \/var\/log\/messages;/IPT_SYSLOG_FILE             \/var\/log\/syslog;/' "/etc/psad/psad.conf"
 	sed -i 's/SIG_UPDATE_URL              http:\/\/www.cipherdyne.org\/psad\/signatures;/SIG_UPDATE_URL              https:\/\/www.cipherdyne.org\/psad\/signatures;/'  "/etc/psad/psad.conf"
 	
-	psad --sig-update >> psad.lodf
+	psad --sig-update
 	psad -H
-	psad --fw-analyze >> psad.logd
+	psad --fw-analyze
 	sleep 3
 	clear
 }
@@ -611,7 +606,7 @@ function users_file {
 	echo "0 UID users"
 	mawk -F: '$3 == 0 && $1 == "root"' /etc/passwd
 	#fiels
-	find /dir -xdev \( -nouser -o -nogroup \) -print
+	find / -xdev \( -nouser -o -nogroup \) -print
 	read -p "enter to cont. "
 	sleep 4
 	clear
@@ -620,7 +615,8 @@ function users_file {
 	do
 		find /home -type f -name "$type" -print >> badFiles
 	done
-	
+	clear
+	echo "sudo ls badFiles"
 }
 function ip_table {
 		apt-get install -y iptables
@@ -676,17 +672,17 @@ function ip_table {
 		iptables -A OUTPUT -d 203.0.113.0/24 -j DROP
 		iptables -A OUTPUT -d 224.0.0.0/3 -j DROP
 		#Blocks outbound from source  - A bit overkill
-		iptables -A OUTPUT -s 127.0.0.0/8 -o $interface -j DROP
-		iptables -A OUTPUT -s 0.0.0.0/8 -j DROP
-		iptables -A OUTPUT -s 100.64.0.0/10 -j DROP
-		iptables -A OUTPUT -s 169.254.0.0/16 -j DROP
-		iptables -A OUTPUT -s 192.0.0.0/24 -j DROP
-		iptables -A OUTPUT -s 192.0.2.0/24 -j DROP
-		iptables -A OUTPUT -s 198.18.0.0/15 -j DROP
-		iptables -A OUTPUT -s 198.51.100.0/24 -j DROP
-		iptables -A OUTPUT -s 203.0.113.0/24 -j DROP
-		iptables -A OUTPUT -s 224.0.0.0/3 -j DROP
-		#Block receiving bogons intended for  - Super overkill
+		#iptables -A OUTPUT -s 127.0.0.0/8 -o $interface -j DROP
+		#iptables -A OUTPUT -s 0.0.0.0/8 -j DROP
+		#iptables -A OUTPUT -s 100.64.0.0/10 -j DROP
+		#iptables -A OUTPUT -s 169.254.0.0/16 -j DROP
+		#iptables -A OUTPUT -s 192.0.0.0/24 -j DROP
+		#iptables -A OUTPUT -s 192.0.2.0/24 -j DROP
+		#iptables -A OUTPUT -s 198.18.0.0/15 -j DROP
+		#iptables -A OUTPUT -s 198.51.100.0/24 -j DROP
+		#iptables -A OUTPUT -s 203.0.113.0/24 -j DROP
+		#iptables -A OUTPUT -s 224.0.0.0/3 -j DROP
+		#Block receiving  intended for  - Super overkill
 		iptables -A INPUT -d 127.0.0.0/8 -i $interface -j DROP
 		iptables -A INPUT -d 0.0.0.0/8 -j DROP
 		iptables -A INPUT -d 100.64.0.0/10 -j DROP
@@ -708,16 +704,16 @@ function ip_table {
 		#iptables -A OUTPUT -o lo -j ACCEPT
 		#iptables -P OUTPUT DROP
 		#Very Strict Rules - Only allow HTTP/HTTPS, NTP and DNS
-		iptables -A INPUT -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED -j ACCEPT
-		iptables -A INPUT -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
-		iptables -A INPUT -p tcp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
-		iptables -A INPUT -p udp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
-		iptables -A OUTPUT -p tcp --dport 80 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-		iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-		iptables -A OUTPUT -p tcp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-		iptables -A OUTPUT -p udp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
-		iptables -A OUTPUT -o lo -j ACCEPT
-		iptables -P OUTPUT DROP
+		#iptables -A INPUT -p tcp --sport 80 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A INPUT -p tcp --sport 443 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A INPUT -p tcp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A INPUT -p udp --sport 53 -m conntrack --ctstate ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p tcp --dport 80 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p tcp --dport 443 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p tcp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -p udp --dport 53 -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+		#iptables -A OUTPUT -o lo -j ACCEPT
+		#iptables -P OUTPUT DROP
 		mkdir /etc/iptables/
 		touch /etc/iptables/rules.v4
 		touch /etc/iptables/rules.v6
@@ -822,19 +818,23 @@ function menu {
 	elif [[ $ans == 16 ]]; then
 		users_file
 	elif [[ $ans == 17 ]]; then
-		ip_table
+		clear
+		echo "SORRY NO WORK 420"
 	elif [[ $ans == 99 ]]; then
 		break
 	elif [[ $ans == 420 ]]; then
 		echo "
 		8. system but weird
-		13. ssh but its a pain"
+		13. ssh but its a pain
+		17. brecks internet "
 		read -p "choice??? " sc
 		
 		if [[ $sc == 8 ]]; then
 			bad_pro
 		elif [[ $sc == 13 ]]; then
 			sshd
+		elif [[ $sc == 17 ]]; then
+			ip_table
 		else
 			echo "NO BY"
 			sleep 2
