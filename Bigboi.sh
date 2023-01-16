@@ -2,6 +2,8 @@
 
 
 function update_remove_packets {
+	sudo apt-get update
+	sudo apt-get upgrade
 	#remove hacking tools
 	apt remove john
 	apt remove hydra
