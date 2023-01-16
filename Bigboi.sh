@@ -329,6 +329,7 @@ function system {
 	sed -i 's/^#CtrlAltBurstAction=.*/CtrlAltBurstAction=none/' "/etc/systemd/system.conf"
 	sleep 1
 	clear
+	chmod 640 /etc/shadow
 	#cCRON
 	echo "CRON CRON"
 	read -p "only root allowed ok? y/n " j
