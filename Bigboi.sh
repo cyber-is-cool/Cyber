@@ -521,16 +521,16 @@ function sshd {
   	sed -i '/HostKey.*ssh_host_dsa_key.*/d' "~/.shh/config"
 	sed -i '/KeyRegenerationInterval.*/d' "~/.shh/config"
 	sed -i '/ServerKeyBits.*/d' "~/.shh/config"
-	sed -i '/UseLogin.*/d' "$SSHDFILE"
-	sed -i 's/.*X11Forwarding.*/X11Forwarding no/' "$SSHDFILE"
-	sed -i 's/.*LoginGraceTime.*/LoginGraceTime 20/' "$SSHDFILE"
-	sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' "$SSHDFILE"
-	sed -i 's/.*UsePrivilegeSeparation.*/UsePrivilegeSeparation sandbox/' "$SSHDFILE"
-	sed -i 's/.*LogLevel.*/LogLevel VERBOSE/' "$SSHDFILE"
-	sed -i 's/.*Banner.*/Banner \/etc\/issue.net/' "$SSHDFILE"
-	sed -i 's/.*Subsystem.*sftp.*/Subsystem sftp internal-sftp/' "$SSHDFILE"
-	sed -i 's/^#.*Compression.*/Compression no/' "$SSHDFILE"
-	sed -i "s/.*Port.*/Port $SSH_PORT/" "$SSHDFILE"
+	sed -i '/UseLogin.*/d' "/etc/ssh/sshd_config"
+	sed -i 's/.*X11Forwarding.*/X11Forwarding no/' "/etc/ssh/sshd_config"
+	sed -i 's/.*LoginGraceTime.*/LoginGraceTime 20/' "/etc/ssh/sshd_config"
+	sed -i 's/.*PermitRootLogin.*/PermitRootLogin no/' "/etc/ssh/sshd_config"
+	sed -i 's/.*UsePrivilegeSeparation.*/UsePrivilegeSeparation sandbox/' "/etc/ssh/sshd_config"
+	sed -i 's/.*LogLevel.*/LogLevel VERBOSE/' "/etc/ssh/sshd_config"
+	sed -i 's/.*Banner.*/Banner \/etc\/issue.net/' "/etc/ssh/sshd_config"
+	sed -i 's/.*Subsystem.*sftp.*/Subsystem sftp internal-sftp/' "/etc/ssh/sshd_config"
+	sed -i 's/^#.*Compression.*/Compression no/' "/etc/ssh/sshd_config"
+	sed -i "s/.*Port.*/Port $SSH_PORT/" "/etc/ssh/sshd_config"
 }
 
 function sudo_pro {
@@ -798,8 +798,8 @@ function menu {
 	elif [[ $ans == 7 ]]; then
 		fireball
 	elif [[ $ans == 8 ]]; then
-		clear
-		echo "SORRY NO WORK 420"
+		echo "No work"
+		sleep 2
 	elif [[ $ans == 9 ]]; then
 		system
 	elif [[ $ans == 10 ]]; then
@@ -809,8 +809,7 @@ function menu {
 	elif [[ $ans == 12 ]]; then
 		sysctl_hard
 	elif [[ $ans == 13 ]]; then
-		clear
-		echo "SORRY NO WORK 420"
+		sshd
 	elif [[ $ans == 14 ]]; then
 		sudo_pro
 	elif [[ $ans == 15 ]]; then
