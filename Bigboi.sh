@@ -440,6 +440,7 @@ function login_security {
 	for i in $(mawk -F: '$3 > 999 && $3 < 65534 {print $1}' /etc/passwd); 
 	do  
 		chmod -R 750 /home/${i} 
+		echo "${i}"
 	done
 	
 	
