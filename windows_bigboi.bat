@@ -48,9 +48,64 @@ ECHO Windows Defender Spyware
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d 0 /f
 timeout 3 > NUL
 cls
-:PASS
 
+:PASS
+ECHO Windows password
+net accounts /history:24
+net accounts /maxpwage:60
+net accounts /minpwage:1
+net accounts /minpwlen:10
+timeout 3 > NUL
+cls
+ECHO Complexity reversible encryption
+net accounts /complexity:on
+net accounts /store:off
+timeout 3 > NUL
+cls
 ECHO Lock out policy
 net accounts /lockoutduration:30
 net accounts /lockoutthreshold:10
 net accounts /lockoutwindow:30
+
+:Disabel
+
+SET /P M= Type Would you like to diable remote desktop? (y/n)
+IF %M%==y GOTO REMOTE
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+:after
+ECHO disable UPnP diable
+sc config "UPnP Device Host" start= disabled
+net stop "UPnP Device Host"
+timeout 3 > NUL
+cls
+
+ECHO Telnet disable
+sc config "Telnet" start= disabled
+net stop "Telnet"
+timeout 3 > NUL
+cls
+ECHO snmp diable
+sc config "SNMP Trap" start= disabled
+net stop "SNMP Trap"
+timeout 3 > NUL
+cls
+ECHO Windows Event Collector enable
+sc config "Windows Event Collector" start= auto
+net start "Windows Event Collector"
+timeout 3 > NUL
+cls
+ECHO Remote Registry Disabled
+sc config "Remote Registry" start= disabled
+net stop "Remote Registry"
+
+
+
+
+
+:REMOTE
+Echo Remote desktop disable
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 1 /f
+timeout 3 > NUL
+cls
+GOTO after
+
