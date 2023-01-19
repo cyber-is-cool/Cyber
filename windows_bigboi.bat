@@ -7,9 +7,9 @@ ECHO.
 ECHO ...............................................
 ECHO PRESS 1, 2 OR 3 to select your task, or 4 to EXIT.
 ECHO.
-ECHO 1 - Open Password
-ECHO 2 - Open System
-ECHO 3 - Open Notepad AND Calculator
+ECHO 1 - Password
+ECHO 2 - System
+ECHO 3 - Firewall
 ECHO 4 - EXIT
 ECHO ...............................................
 ECHO.
@@ -108,4 +108,14 @@ reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v
 timeout 3 > NUL
 cls
 GOTO after
+
+
+:FIRE
+ECHO FIREWALL
+netsh advfirewall set allprofiles state on
+netsh advfirewall firewall add rule name="Block MS Edge" dir=in action=block program="%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"
+netsh advfirewall firewall add rule name="Block Search" dir=in action=block program="%ProgramFiles(x86)%\Windows Kits\10\Windows Performance Toolkit\SearchUI.exe"
+netsh advfirewall firewall add rule name="Block MSN Money" dir=in action=block program="%ProgramFiles(x86)%\Windows Live\Finance\Finance.exe"
+netsh advfirewall firewall add rule name="Block MSN Sports" dir=in action=block program="%ProgramFiles(x86)%\Windows Live\Sports\Sports.exe"
+netsh advfirewall firewall add rule name="Block MSN
 
