@@ -48,3 +48,9 @@ ECHO Windows Defender Spyware
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d 0 /f
 timeout 3 > NUL
 cls
+:PASS
+
+ECHO Lock out policy
+net accounts /lockoutduration:30
+net accounts /lockoutthreshold:10
+net accounts /lockoutwindow:30
