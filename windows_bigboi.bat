@@ -7,8 +7,8 @@ ECHO.
 ECHO ...............................................
 ECHO PRESS 1, 2 OR 3 to select your task, or 4 to EXIT.
 ECHO.
-ECHO 1 - Open Notepad
-ECHO 2 - Open Calculator
+ECHO 1 - Open Password
+ECHO 2 - Open System
 ECHO 3 - Open Notepad AND Calculator
 ECHO 4 - EXIT
 ECHO ...............................................
@@ -31,4 +31,20 @@ auditpol /set /subcategory:"Detailed Tracking" /success:enable /failure:enable
 
 timeout 3 > NUL
 cls
-
+ECHO Auto Play disable
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\AutoplayHandlers" /v "DisableAutoplay" /t REG_DWORD /d 1 /f
+timeout 3 > NUL
+cls
+ECHO One Drive Startup
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "OneDrive" /t REG_SZ /d "C:\Windows\System32\OneDriveSetup.exe /autostart" /f
+timeout 3 > NUL
+cls
+Echo Screen Saver
+reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "ScreenSaverIsSecure" /t REG_SZ /d "1" /f
+reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "ScreenSaveTimeOut" /t REG_SZ /d "600" /f
+timeout 3 > NUL
+cls
+ECHO Windows Defender Spyware
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v "DisableAntiSpyware" /t REG_DWORD /d 0 /f
+timeout 3 > NUL
+cls
