@@ -364,11 +364,11 @@ function system {
 	echo " Rhosts file"
 	rm /etc/hosts.equiv
 	sleep 2
-	echo "postfix"
-	postconf -e disable_vrfy_command=yes
-	postconf -e smtpd_client_restrictions=permit_mynetworks,reject
-	postconf -e inet_interfaces=loopback-only
-	systemctl restart postfix.service
+	#echo "postfix"
+	#postconf -e disable_vrfy_command=yes
+	#postconf -e smtpd_client_restrictions=permit_mynetworks,reject
+	#postconf -e inet_interfaces=loopback-only
+	#systemctl restart postfix.service
 	clear
 	sleep 2
 	read -p "USB guard stuff... enter " h
