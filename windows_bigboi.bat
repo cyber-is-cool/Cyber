@@ -10,7 +10,8 @@ ECHO.
 ECHO 1 - Password
 ECHO 2 - System
 ECHO 3 - Firewall
-ECHO 4 - EXIT
+ECHO 4 - Disable
+ECHO 5 - EXIT
 ECHO ...............................................
 ECHO.
 
@@ -18,7 +19,8 @@ SET /P M=Type 1, 2, 3, or 4 then press ENTER:
 IF %M%==1 GOTO PASS
 IF %M%==2 GOTO SYS
 IF %M%==3 GOTO OTH
-IF %M%==4 GOTO EOF
+IF %M%==4 GOTO DIS
+IF %M%== 5 GOTO EOF
 
 :SYS
 
@@ -103,7 +105,7 @@ net accounts /lockoutduration:30
 net accounts /lockoutthreshold:10
 net accounts /lockoutwindow:30
 
-:Disabel
+:DIS
 ECHO DISABLE
 dism /online /disable-feature /featurename:IIS-WebServerRole
 dism /online /disable-feature /featurename:IIS-WebServer
