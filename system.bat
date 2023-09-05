@@ -51,3 +51,6 @@ dism /online /disable-feature /featurename:IIS-FTPExtensibility
 dism /online /disable-feature /featurename:TFTP
 dism /online /disable-feature /featurename:TelnetClient
 dism /online /disable-feature /featurename:TelnetServer
+
+dism /online /disable-feature /featurename:"SMB1Protocol"
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false -Force
